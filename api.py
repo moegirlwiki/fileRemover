@@ -172,14 +172,14 @@ def main():
 					executor.map(removeFile, removableList)
 				if export is not None:
 					with open(export, "w", encoding="utf-8") as f:
-						f.writelines([line+'\n' for line in removableList])
+						f.writelines([line.decode()+'\n' for line in removableList])
 				model.cleanup()
 				print("complete")
 				break
 			elif int(counter) >= 2 and searchonly is True:
 				if export is not None:
 					with open(export, "w", encoding="utf-8") as f:
-						f.writelines([line+'\n' for line in removableList])
+						f.writelines([line.decode()+'\n' for line in removableList])
 				model.cleanup()
 				print("complete")
 				break
