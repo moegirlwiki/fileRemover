@@ -47,8 +47,14 @@ def markRemovableImages():
 	r.incr("counter")
 	return list(r.smembers("resultset"))
 
+def getRemovableImages():
+	return list(r.smembers("resultset"))
+
+def initCounter():
+	r.set("counter", 0)
+
 def getCounter():
 	return r.get("counter")
 
 def cleanup():
-	r.delete("continue", "aicontinue", "startflag", "stime", "noreflist", "expirelist", "resultset", "counter")
+	r.delete("continue", "aicontinue", "startflag", "stime", "noreflist", "expirelist", "counter")

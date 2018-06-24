@@ -6,6 +6,7 @@ import model
 import json
 import time
 import datetime
+import sys, getopt
 
 apiroot = "https://commons.moegirl.org/api.php"
 cookie = None
@@ -117,6 +118,7 @@ def botLogin():
 
 def removeFile(filename):
 	try:
+		print("removing")
 		csrf_params = {"action": "query", "format": "json", "meta": "tokens"}
 		csrf = requests.post(apiroot, data=csrf_params, cookies = cookie).json()['query']['tokens']['csrftoken']
 		del_params={"action": "delete", "title":title, "format": "json","tags":"Bot","reason":"autoremove unused file","token":csrf}
@@ -131,8 +133,21 @@ def removeFile(filename):
 		return False
 
 def main():
+	searchonly = False
+	export = None
+	exportonlyflag = False
+	opts, args = getopt.getopt(sys.argv[1:], "sne:", ["search", "exportonly", "export="])
+	for op, value in opts:
+		if op in ("-h, --search"):
+			searchonly = True
+		if op in ("-n", "--exportonly"):
+			exportonlyflag = True
+		if op in ("-e", "--export"):
+			export = value
 	if model.getStartflag() is None:
 		model.setStartflag(1)
+	if model.getCounter() is None:
+		model.initCounter()
 	while True:
 		if cookie is None:
 			botLogin()
@@ -140,19 +155,42 @@ def main():
 			model.swapLists()
 			model.setNonetime()
 			model.setStartflag(1)
+		if exportonlyflag is True:
+			model.setStartflag(0)
+		else:
+			model.setStartflag(1)
 		startflag = bool(int(model.getStartflag().decode()))
 		while startflag is True:
 			getNoRefList()
 			startflag = bool(int(model.getStartflag().decode()))
 		else:
-			removableList = model.markRemovableImages()
+			if exportonlyflag is False:
+				removableList = model.markRemovableImages()
 			counter = model.getCounter()
-			if int(counter) >= 2:
+			if int(counter) >= 2 and searchonly is False:
 				with futures.ThreadPoolExecutor(config.workers) as executor:
-					executor.map(removeFile, removeableList)
+					executor.map(removeFile, removableList)
+				if export is not None:
+					with open(export, "w", encoding="utf-8") as f:
+						f.writelines([line+'\n' for line in removableList])
 				model.cleanup()
 				print("complete")
 				break
+			elif int(counter) >= 2 and searchonly is True:
+				if export is not None:
+					with open(export, "w", encoding="utf-8") as f:
+						f.writelines([line+'\n' for line in removableList])
+				model.cleanup()
+				print("complete")
+				break
+			elif exportonlyflag is True and export is not None:
+				removableList = model.getRemovableImages()
+				with open(export, "w", encoding="utf-8") as f:
+					f.writelines([line.decode()+"\n" for line in removableList])
+				print("complete")
+				break
+			elif exportonlyflag is True and export is None:
+				raise AttributeError("You must specify a export destiniation")
 
 if __name__ == '__main__':
 	main()
