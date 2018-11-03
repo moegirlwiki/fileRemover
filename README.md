@@ -11,7 +11,7 @@ python api.py
 
 -e --export <filename>: specify a file for exporting results. If file is not existed, it will be created. If file is existed, it will be overwritten. 
   
-e.g. : python api.py -n -e "path/to/saved/list" to get all unused files list.
+e.g. : python api.py -e "path/to/saved/list" to get all unused files list.
 
 you may need:
 
