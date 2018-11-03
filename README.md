@@ -4,6 +4,7 @@ remove the unused file in common.moegirl.org
 python api.py
 
 #command line options
+
 -s --search: search only mode, no file will be removed
 
 -n --exportonly: turn off search function, export results to a file. Need to use with -e option
