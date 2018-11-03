@@ -2,6 +2,7 @@
 import datetime
 import redis
 
+# set db=1 , if db=0 have data.
 r = redis.Redis(host="localhost", port=6379, db=0)
 botUsername = ""
 botPassword = ""
