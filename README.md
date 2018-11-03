@@ -1,5 +1,8 @@
 # fileRemover
 remove the unused file in common.moegirl.org
+
+python api.py
+
 #command line options
 -s --search: search only mode, no file will be removed
 
@@ -10,5 +13,7 @@ remove the unused file in common.moegirl.org
 you may need:
 
 apt-get install python-setuptools
+
 easy_install pip
+
 pip install redis
