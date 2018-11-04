@@ -9,6 +9,7 @@ import datetime
 import sys, getopt
 
 apiroot = "https://commons.moegirl.org/api.php"
+cookie = None
 def allimages():
 	aiend = model.getStarttime() #get the latest timestamp from model
 	cont = model.getContinue()
@@ -25,7 +26,7 @@ def allimages():
 		params = {"action": "query", "aiprop": "canonicaltitle", "format": "json", "list": "allimages",
 				 "aisort": "timestamp", "aistart": aistart, "aiend": aiend.decode(), "ailimit": 500,"continue": cont.decode(), "aicontinue": aicontinue.decode()}
 	try:
-		req = requests.get(apiroot, params=params, cookies = config.cookie)
+		req = requests.get(apiroot, params=params, cookies = cookie)
 		print(req.url)
 		jsondata = req.json()
 	except ValueError:
@@ -113,38 +114,34 @@ def botLogin():
 	req = requests.post(apiroot, data=token_params)
 	token = req.json()['query']['tokens']['logintoken']
 	login_params = {'action': 'login', 'lgname': config.botUsername, 'lgtoken': token, 'lgpassword': config.botPassword, 'format': 'json'}
-	config.cookie = requests.post(apiroot, data=login_params, cookies = req.cookies).cookies
+	cookie = requests.post(apiroot, data=login_params, cookies = req.cookies).cookies
 
 def removeFile(filename):
 	try:
-		print(filename)
+		print("removing")
 		csrf_params = {"action": "query", "format": "json", "meta": "tokens"}
-		csrf = requests.post(apiroot, data=csrf_params, cookies = config.cookie).json()['query']['tokens']['csrftoken']
-		del_params={"action": "delete", "title":filename, "format": "json","tags":"Bot","reason":"autoremove unused file","token":csrf}
-		req = requests.post(apiroot, data = del_params, cookies = config.cookie)
+		csrf = requests.post(apiroot, data=csrf_params, cookies = cookie).json()['query']['tokens']['csrftoken']
+		del_params={"action": "delete", "title":title, "format": "json","tags":"Bot","reason":"autoremove unused file","token":csrf}
+		req = requests.post(apiroot, data = del_params, cookies = cookie)
 	except ValueError:
 		print("jsondata parse error")
 		return False
 	except requests.exceptions.SSLError:
 		print("connection lost")
 		return False
-	except Exception as e:
-		print(e.value)
+	except:
 		return False
 
 def main():
 	searchonly = False
 	export = None
 	exportonlyflag = False
-	deleteflag = None
-	opts, args = getopt.getopt(sys.argv[1:], "snde:", ["search", "exportonly", "delete", "export="])
+	opts, args = getopt.getopt(sys.argv[1:], "sne:", ["search", "exportonly", "export="])
 	for op, value in opts:
-		if op in ("-s, --search"):
+		if op in ("-h, --search"):
 			searchonly = True
 		if op in ("-n", "--exportonly"):
 			exportonlyflag = True
-		if op in ("-d", "delete"):
-			deleteflag = True
 		if op in ("-e", "--export"):
 			export = value
 	if model.getStartflag() is None:
@@ -152,24 +149,13 @@ def main():
 	if model.getCounter() is None:
 		model.initCounter()
 	while True:
-		if config.cookie is None:
+		if cookie is None:
 			botLogin()
-		if deleteflag is True:
-			if searchonly is True or export is not None or exportonlyflag is True:
-				raise AttributeError("You should not use -d flag with other options")
-			else:
-				removableList = model.getRemovableImages()
-				with futures.ThreadPoolExecutor(config.workers) as executor:
-					executor.map(removeFile, removableList)
-				print("complete")
-				break
 		if model.getContinue() is None or model.getContinue().decode() == "None":
 			model.swapLists()
 			model.setNonetime()
 			model.setStartflag(1)
 		if exportonlyflag is True:
-			model.setStartflag(0)
-		elif deleteflag is True:
 			model.setStartflag(0)
 		else:
 			model.setStartflag(1)
@@ -206,8 +192,7 @@ def main():
 			elif exportonlyflag is True and export is None:
 				raise AttributeError("You must specify a export destiniation")
 
-
-
 if __name__ == '__main__':
 	main()
+
 	
