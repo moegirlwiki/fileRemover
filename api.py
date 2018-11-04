@@ -7,6 +7,8 @@ import json
 import time
 import datetime
 import sys, getopt
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
 apiroot = "https://commons.moegirl.org/api.php"
 def allimages():
@@ -210,4 +212,3 @@ def main():
 
 if __name__ == '__main__':
 	main()
-	
